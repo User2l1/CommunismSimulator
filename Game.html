@@ -20,7 +20,7 @@
     h1, h2 {
       color: #ff0000;
     }
-    #dashboard, #events {
+    #dashboard, #events, #citizens {
       border: 2px solid #33ff33;
       margin: 20px auto;
       padding: 10px;
@@ -53,6 +53,11 @@
       background-color: #ff0000;
       color: white;
     }
+    .citizen {
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px dashed #33ff33;
+    }
   </style>
 </head>
 <body>
@@ -69,6 +74,12 @@
       <p>Military: <span id="military">70</span></p>
       <p>Happiness: <span id="happiness">85%</span></p>
       <p>Technology: <span id="technology">40</span></p>
+    </section>
+    <section id="citizens">
+      <h2>Your Citizens</h2>
+      <div id="citizen-list">
+        <!-- Citizens will be dynamically added here -->
+      </div>
     </section>
     <section id="events">
       <h2>Current Event</h2>
@@ -103,6 +114,12 @@
     let happiness = 85;
     let technology = 40;
 
+    const citizens = [
+      { name: "Ivan", role: "Farmer", loyalty: 85 },
+      { name: "Nina", role: "Teacher", loyalty: 90 },
+      { name: "Sergei", role: "Soldier", loyalty: 75 },
+    ];
+
     const events = [
       { description: "A drought has struck the land. Do you prioritize food production or import supplies?", options: [
         { text: "Invest in local food production", resourceChange: -30, loyaltyChange: +10 },
@@ -114,6 +131,21 @@
       ]}
     ];
     let currentEventIndex = 0;
+
+    // Initialize citizens
+    function initializeCitizens() {
+      const citizenList = document.getElementById("citizen-list");
+      citizens.forEach(citizen => {
+        const citizenDiv = document.createElement("div");
+        citizenDiv.className = "citizen";
+        citizenDiv.innerHTML = `
+          <p><strong>Name:</strong> ${citizen.name}</p>
+          <p><strong>Role:</strong> ${citizen.role}</p>
+          <p><strong>Loyalty:</strong> ${citizen.loyalty}%</p>
+        `;
+        citizenList.appendChild(citizenDiv);
+      });
+    }
 
     // Update the dashboard
     function updateDashboard() {
@@ -201,6 +233,7 @@
     }
 
     // Initialize the game
+    initializeCitizens();
     updateDashboard();
     displayEvent();
   </script>
