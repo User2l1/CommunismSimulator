@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Communism Simulator - Deluxe Edition</title>
+  <title>Communism Simulator - Game</title>
   <style>
-    /* General Styles */
     body {
       font-family: 'Press Start 2P', monospace;
       background-color: black;
@@ -41,9 +40,9 @@
       margin-top: 50px;
     }
     button {
-      margin: 5px;
+      margin: 10px;
       padding: 10px;
-      font-size: 14px;
+      font-size: 16px;
       background-color: #33ff33;
       color: black;
       border: none;
@@ -58,8 +57,8 @@
 </head>
 <body>
   <header>
-    <h1>The People's Republic of Pixelonia</h1>
-    <h2>Lead Your Nation to Glory</h2>
+    <h1>Communism Simulator</h1>
+    <h2>Game Screen</h2>
   </header>
   <main>
     <section id="dashboard">
@@ -76,15 +75,26 @@
       <p id="event-description">Your citizens await your decision...</p>
       <button id="option1" onclick="handleDecision('option1')">Option 1</button>
       <button id="option2" onclick="handleDecision('option2')">Option 2</button>
-      <p id="loading">Loading message<span id="dots"></span></p>
+      <p id="loading" class="hidden">Loading message<span id="dots"></span></p>
     </section>
-    <div id="end-screen">
+    <div id="end-screen" class="hidden">
       <h2>Game Over</h2>
       <p id="end-text">Your leadership has shaped the destiny of the People's Republic of Pixelonia.</p>
       <p>Thank you for playing.</p>
     </div>
   </main>
   <script>
+    // Retrieve the API key from localStorage
+    const apiKey = localStorage.getItem("apiKey");
+    const aiCitizensEnabled = !!apiKey; // Boolean: true if API key exists
+
+    if (aiCitizensEnabled) {
+      console.log("AI citizens enabled with API key:", apiKey);
+      alert("AI citizens are active! Welcome to an enhanced experience.");
+    } else {
+      console.log("No API key provided. Continuing with normal citizens.");
+    }
+
     // Game state variables
     let year = 1950;
     let resources = 200;
@@ -105,17 +115,6 @@
     ];
     let currentEventIndex = 0;
 
-    // Optional AI Citizens
-    let aiCitizensEnabled = false;
-    try {
-      // Try importing the fictional Gemni API
-      importGemniAPI();
-      aiCitizensEnabled = true;
-      console.log("Gemni AI citizens enabled.");
-    } catch (error) {
-      console.warn("Gemni API not imported. Continuing without AI citizens.");
-    }
-
     // Update the dashboard
     function updateDashboard() {
       document.getElementById("year").innerText = year;
@@ -134,42 +133,19 @@
       document.getElementById("option2").innerText = event.options[1].text;
     }
 
-    // Start the loading animation
-    function startLoadingAnimation() {
-      const loadingElement = document.getElementById("loading");
-      const dotsElement = document.getElementById("dots");
-      let dotCount = 0;
-
-      // Clear old messages
-      document.getElementById("event-description").innerText = "";
-
-      loadingElement.style.display = "block";
-
-      const interval = setInterval(() => {
-        dotCount = (dotCount + 1) % 4;
-        dotsElement.innerText = ".".repeat(dotCount);
-      }, 500);
-
-      setTimeout(() => {
-        clearInterval(interval);
-        loadingElement.style.display = "none";
-        showNextEvent();
-      }, 2000);
-    }
-
     // Handle decisions
     function handleDecision(option) {
       const event = events[currentEventIndex];
       const choice = option === 'option1' ? event.options[0] : event.options[1];
 
-      // Update the resources
+      // Update resources
       resources += choice.resourceChange || 0;
       loyalty += choice.loyaltyChange || 0;
       military += choice.militaryChange || 0;
       happiness += choice.happinessChange || 0;
       technology += choice.technologyChange || 0;
 
-      // Increment the year and move to the next event
+      // Increment year and move to the next event
       year++;
       currentEventIndex++;
 
@@ -182,16 +158,37 @@
       updateDashboard();
     }
 
-    // Show the next event after loading animation
+    // Start loading animation
+    function startLoadingAnimation() {
+      const loadingElement = document.getElementById("loading");
+      const dotsElement = document.getElementById("dots");
+      let dotCount = 0;
+
+      document.getElementById("event-description").innerText = "";
+      loadingElement.classList.remove("hidden");
+
+      const interval = setInterval(() => {
+        dotCount = (dotCount + 1) % 4;
+        dotsElement.innerText = ".".repeat(dotCount);
+      }, 500);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        loadingElement.classList.add("hidden");
+        showNextEvent();
+      }, 2000);
+    }
+
+    // Show the next event
     function showNextEvent() {
       displayEvent();
     }
 
-    // End the game with a dramatic screen
+    // End the game
     function endGame() {
-      document.getElementById("events").style.display = "none";
+      document.getElementById("events").classList.add("hidden");
       const endScreen = document.getElementById("end-screen");
-      endScreen.style.display = "block";
+      endScreen.classList.remove("hidden");
 
       const endText = document.getElementById("end-text");
       if (resources > 150 && happiness > 80) {
@@ -201,12 +198,6 @@
       } else {
         endText.innerText = "Your leadership ends with mixed results. History will judge your legacy.";
       }
-    }
-
-    // Mock function for importing Gemni API
-    function importGemniAPI() {
-      // Simulate successful API import
-      console.log("Gemni API imported successfully.");
     }
 
     // Initialize the game
