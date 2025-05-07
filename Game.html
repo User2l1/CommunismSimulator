@@ -48,6 +48,20 @@
       margin: 10px 0;
       font-style: italic;
     }
+    button {
+      margin: 5px;
+      padding: 10px;
+      font-size: 14px;
+      background-color: #33ff33;
+      color: black;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ff0000;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -59,6 +73,7 @@
       <h2>Dashboard</h2>
       <p>Resources: <span id="resources">100</span></p>
       <p>Population Loyalty: <span id="loyalty">75%</span></p>
+      <p>Military Strength: <span id="military">50</span></p>
     </section>
     <section id="citizens">
       <h2>Your Citizens</h2>
@@ -69,25 +84,50 @@
     <section id="events">
       <h2>Current Event</h2>
       <p id="event-description">Your citizens await your decision...</p>
-      <button onclick="makeDecision('option1')">Option 1</button>
-      <button onclick="makeDecision('option2')">Option 2</button>
+      <button id="option1" onclick="makeDecision('option1')">Option 1</button>
+      <button id="option2" onclick="makeDecision('option2')">Option 2</button>
     </section>
   </main>
   <script>
     // Game state
     let resources = 100;
     let loyalty = 75;
+    let military = 50;
     const citizens = [
-      { name: "Ivan", dialogue: "We need more food to survive!", health: 80 },
-      { name: "Nina", dialogue: "I am happy to serve the Republic.", health: 90 },
-      { name: "Sergei", dialogue: "The factories are running out of supplies!", health: 60 }
+      { name: "Ivan", dialogue: "We need more food to survive!", health: 80, job: "Farmer" },
+      { name: "Nina", dialogue: "I am happy to serve the Republic.", health: 90, job: "Teacher" },
+      { name: "Sergei", dialogue: "The factories are running out of supplies!", health: 60, job: "Factory Worker" }
     ];
+    const events = [
+      {
+        description: "The harvest has failed. Do you ration food or import supplies?",
+        options: [
+          { text: "Ration food (lose loyalty, save resources)", resourceChange: -10, loyaltyChange: -5 },
+          { text: "Import supplies (lose resources, gain loyalty)", resourceChange: -20, loyaltyChange: +10 }
+        ]
+      },
+      {
+        description: "A neighboring country threatens war. Do you increase military funding or negotiate peace?",
+        options: [
+          { text: "Increase military funding (lose resources, gain military)", resourceChange: -15, militaryChange: +10 },
+          { text: "Negotiate peace (save resources, lose military)", resourceChange: 0, militaryChange: -10 }
+        ]
+      },
+      {
+        description: "Citizens demand better wages. Do you raise wages or suppress protests?",
+        options: [
+          { text: "Raise wages (lose resources, gain loyalty)", resourceChange: -20, loyaltyChange: +15 },
+          { text: "Suppress protests (lose loyalty, save resources)", resourceChange: 0, loyaltyChange: -10 }
+        ]
+      }
+    ];
+    let currentEventIndex = 0;
 
     // Initialize citizens
     function initializeCitizens() {
       const citizenList = document.getElementById("citizen-list");
       citizenList.innerHTML = ''; // Clear existing citizens
-      citizens.forEach((citizen, index) => {
+      citizens.forEach((citizen) => {
         const citizenDiv = document.createElement("div");
         citizenDiv.className = "citizen";
         citizenDiv.innerHTML = `
@@ -95,36 +135,60 @@
           <div>
             <p class="citizen-name">${citizen.name}</p>
             <p class="dialogue">${citizen.dialogue}</p>
+            <p>Job: ${citizen.job}</p>
           </div>
         `;
         citizenList.appendChild(citizenDiv);
       });
     }
 
-    // Handle events
-    function makeDecision(option) {
-      const eventDescription = document.getElementById("event-description");
-      if (option === 'option1') {
-        resources -= 10;
-        loyalty += 5;
-        eventDescription.innerText = "You chose Option 1: Resources decreased but loyalty increased.";
-      } else {
-        resources += 10;
-        loyalty -= 5;
-        eventDescription.innerText = "You chose Option 2: Resources increased but loyalty decreased.";
-      }
-      updateDashboard();
-    }
-
     // Update dashboard
     function updateDashboard() {
       document.getElementById("resources").innerText = resources;
       document.getElementById("loyalty").innerText = `${loyalty}%`;
+      document.getElementById("military").innerText = military;
+    }
+
+    // Display current event
+    function displayEvent() {
+      const event = events[currentEventIndex];
+      document.getElementById("event-description").innerText = event.description;
+      document.getElementById("option1").innerText = event.options[0].text;
+      document.getElementById("option2").innerText = event.options[1].text;
+    }
+
+    // Handle decision
+    function makeDecision(option) {
+      const event = events[currentEventIndex];
+      const choice = option === 'option1' ? event.options[0] : event.options[1];
+
+      // Apply changes
+      resources += choice.resourceChange || 0;
+      loyalty += choice.loyaltyChange || 0;
+      military += choice.militaryChange || 0;
+
+      // Move to the next event or end the game
+      currentEventIndex++;
+      if (currentEventIndex < events.length) {
+        displayEvent();
+      } else {
+        endGame();
+      }
+
+      updateDashboard();
+    }
+
+    // End game
+    function endGame() {
+      document.getElementById("event-description").innerText = "The game is over. Thank you for playing!";
+      document.getElementById("option1").style.display = "none";
+      document.getElementById("option2").style.display = "none";
     }
 
     // Initialize game
     initializeCitizens();
     updateDashboard();
+    displayEvent();
   </script>
 </body>
 </html>
