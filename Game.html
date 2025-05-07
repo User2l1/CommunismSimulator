@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Communism Simulator - Expanded</title>
+  <title>Communism Simulator - Deluxe Edition</title>
   <style>
     /* General Styles */
     body {
@@ -33,6 +33,12 @@
       display: none;
       font-style: italic;
       margin-top: 20px;
+    }
+    #end-screen {
+      display: none;
+      color: #ff0000;
+      font-size: 24px;
+      margin-top: 50px;
     }
     button {
       margin: 5px;
@@ -72,6 +78,11 @@
       <button id="option2" onclick="handleDecision('option2')">Option 2</button>
       <p id="loading">Loading message<span id="dots"></span></p>
     </section>
+    <div id="end-screen">
+      <h2>Game Over</h2>
+      <p id="end-text">Your leadership has shaped the destiny of the People's Republic of Pixelonia.</p>
+      <p>Thank you for playing.</p>
+    </div>
   </main>
   <script>
     // Game state variables
@@ -94,6 +105,17 @@
     ];
     let currentEventIndex = 0;
 
+    // Optional AI Citizens
+    let aiCitizensEnabled = false;
+    try {
+      // Try importing the fictional Gemni API
+      importGemniAPI();
+      aiCitizensEnabled = true;
+      console.log("Gemni AI citizens enabled.");
+    } catch (error) {
+      console.warn("Gemni API not imported. Continuing without AI citizens.");
+    }
+
     // Update the dashboard
     function updateDashboard() {
       document.getElementById("year").innerText = year;
@@ -112,11 +134,14 @@
       document.getElementById("option2").innerText = event.options[1].text;
     }
 
-    // Dot animation for loading
+    // Start the loading animation
     function startLoadingAnimation() {
       const loadingElement = document.getElementById("loading");
       const dotsElement = document.getElementById("dots");
       let dotCount = 0;
+
+      // Clear old messages
+      document.getElementById("event-description").innerText = "";
 
       loadingElement.style.display = "block";
 
@@ -132,7 +157,7 @@
       }, 2000);
     }
 
-    // Handle decision and show loading animation
+    // Handle decisions
     function handleDecision(option) {
       const event = events[currentEventIndex];
       const choice = option === 'option1' ? event.options[0] : event.options[1];
@@ -162,11 +187,26 @@
       displayEvent();
     }
 
-    // End the game
+    // End the game with a dramatic screen
     function endGame() {
-      document.getElementById("event-description").innerText = "The game is over. Thank you for playing!";
-      document.getElementById("option1").style.display = "none";
-      document.getElementById("option2").style.display = "none";
+      document.getElementById("events").style.display = "none";
+      const endScreen = document.getElementById("end-screen");
+      endScreen.style.display = "block";
+
+      const endText = document.getElementById("end-text");
+      if (resources > 150 && happiness > 80) {
+        endText.innerText = "The People's Republic of Pixelonia thrives under your wise leadership!";
+      } else if (loyalty < 50) {
+        endText.innerText = "The people have revolted against your rule. Chaos ensues.";
+      } else {
+        endText.innerText = "Your leadership ends with mixed results. History will judge your legacy.";
+      }
+    }
+
+    // Mock function for importing Gemni API
+    function importGemniAPI() {
+      // Simulate successful API import
+      console.log("Gemni API imported successfully.");
     }
 
     // Initialize the game
