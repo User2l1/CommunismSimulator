@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Communism Simulator</title>
+  <title>Communism Simulator - Expanded</title>
   <style>
     /* General Styles */
     body {
@@ -21,32 +21,18 @@
     h1, h2 {
       color: #ff0000;
     }
-    #dashboard, #citizens, #events {
+    #dashboard, #events {
       border: 2px solid #33ff33;
       margin: 20px auto;
       padding: 10px;
       width: 90%;
-      max-width: 600px;
+      max-width: 800px;
       text-align: left;
     }
-    .citizen {
-      display: flex;
-      align-items: center;
-      margin: 10px 0;
-    }
-    .citizen .dot {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #33ff33;
-      margin-right: 10px;
-    }
-    .citizen-name {
-      font-weight: bold;
-    }
-    .dialogue {
-      margin: 10px 0;
+    #loading {
+      display: none;
       font-style: italic;
+      margin-top: 20px;
     }
     button {
       margin: 5px;
@@ -67,89 +53,58 @@
 <body>
   <header>
     <h1>The People's Republic of Pixelonia</h1>
+    <h2>Lead Your Nation to Glory</h2>
   </header>
   <main>
     <section id="dashboard">
       <h2>Dashboard</h2>
-      <p>Resources: <span id="resources">100</span></p>
-      <p>Population Loyalty: <span id="loyalty">75%</span></p>
-      <p>Military Strength: <span id="military">50</span></p>
-    </section>
-    <section id="citizens">
-      <h2>Your Citizens</h2>
-      <div id="citizen-list">
-        <!-- Citizens will be dynamically added here -->
-      </div>
+      <p>Year: <span id="year">1950</span></p>
+      <p>Resources: <span id="resources">200</span></p>
+      <p>Loyalty: <span id="loyalty">90%</span></p>
+      <p>Military: <span id="military">70</span></p>
+      <p>Happiness: <span id="happiness">85%</span></p>
+      <p>Technology: <span id="technology">40</span></p>
     </section>
     <section id="events">
       <h2>Current Event</h2>
       <p id="event-description">Your citizens await your decision...</p>
-      <button id="option1" onclick="makeDecision('option1')">Option 1</button>
-      <button id="option2" onclick="makeDecision('option2')">Option 2</button>
+      <button id="option1" onclick="handleDecision('option1')">Option 1</button>
+      <button id="option2" onclick="handleDecision('option2')">Option 2</button>
+      <p id="loading">Loading message<span id="dots"></span></p>
     </section>
   </main>
   <script>
-    // Game state
-    let resources = 100;
-    let loyalty = 75;
-    let military = 50;
-    const citizens = [
-      { name: "Ivan", dialogue: "We need more food to survive!", health: 80, job: "Farmer" },
-      { name: "Nina", dialogue: "I am happy to serve the Republic.", health: 90, job: "Teacher" },
-      { name: "Sergei", dialogue: "The factories are running out of supplies!", health: 60, job: "Factory Worker" }
-    ];
+    // Game state variables
+    let year = 1950;
+    let resources = 200;
+    let loyalty = 90;
+    let military = 70;
+    let happiness = 85;
+    let technology = 40;
+
     const events = [
-      {
-        description: "The harvest has failed. Do you ration food or import supplies?",
-        options: [
-          { text: "Ration food (lose loyalty, save resources)", resourceChange: -10, loyaltyChange: -5 },
-          { text: "Import supplies (lose resources, gain loyalty)", resourceChange: -20, loyaltyChange: +10 }
-        ]
-      },
-      {
-        description: "A neighboring country threatens war. Do you increase military funding or negotiate peace?",
-        options: [
-          { text: "Increase military funding (lose resources, gain military)", resourceChange: -15, militaryChange: +10 },
-          { text: "Negotiate peace (save resources, lose military)", resourceChange: 0, militaryChange: -10 }
-        ]
-      },
-      {
-        description: "Citizens demand better wages. Do you raise wages or suppress protests?",
-        options: [
-          { text: "Raise wages (lose resources, gain loyalty)", resourceChange: -20, loyaltyChange: +15 },
-          { text: "Suppress protests (lose loyalty, save resources)", resourceChange: 0, loyaltyChange: -10 }
-        ]
-      }
+      { description: "A drought has struck the land. Do you prioritize food production or import supplies?", options: [
+        { text: "Invest in local food production", resourceChange: -30, loyaltyChange: +10 },
+        { text: "Import supplies", resourceChange: -50, happinessChange: +15 }
+      ]},
+      { description: "A neighboring country offers a trade agreement. Do you accept or decline?", options: [
+        { text: "Accept the trade agreement", resourceChange: +40, loyaltyChange: -5 },
+        { text: "Decline the agreement", resourceChange: -20, militaryChange: +10 }
+      ]}
     ];
     let currentEventIndex = 0;
 
-    // Initialize citizens
-    function initializeCitizens() {
-      const citizenList = document.getElementById("citizen-list");
-      citizenList.innerHTML = ''; // Clear existing citizens
-      citizens.forEach((citizen) => {
-        const citizenDiv = document.createElement("div");
-        citizenDiv.className = "citizen";
-        citizenDiv.innerHTML = `
-          <div class="dot"></div>
-          <div>
-            <p class="citizen-name">${citizen.name}</p>
-            <p class="dialogue">${citizen.dialogue}</p>
-            <p>Job: ${citizen.job}</p>
-          </div>
-        `;
-        citizenList.appendChild(citizenDiv);
-      });
-    }
-
-    // Update dashboard
+    // Update the dashboard
     function updateDashboard() {
+      document.getElementById("year").innerText = year;
       document.getElementById("resources").innerText = resources;
       document.getElementById("loyalty").innerText = `${loyalty}%`;
       document.getElementById("military").innerText = military;
+      document.getElementById("happiness").innerText = `${happiness}%`;
+      document.getElementById("technology").innerText = technology;
     }
 
-    // Display current event
+    // Display the current event
     function displayEvent() {
       const event = events[currentEventIndex];
       document.getElementById("event-description").innerText = event.description;
@@ -157,20 +112,44 @@
       document.getElementById("option2").innerText = event.options[1].text;
     }
 
-    // Handle decision
-    function makeDecision(option) {
+    // Dot animation for loading
+    function startLoadingAnimation() {
+      const loadingElement = document.getElementById("loading");
+      const dotsElement = document.getElementById("dots");
+      let dotCount = 0;
+
+      loadingElement.style.display = "block";
+
+      const interval = setInterval(() => {
+        dotCount = (dotCount + 1) % 4;
+        dotsElement.innerText = ".".repeat(dotCount);
+      }, 500);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        loadingElement.style.display = "none";
+        showNextEvent();
+      }, 2000);
+    }
+
+    // Handle decision and show loading animation
+    function handleDecision(option) {
       const event = events[currentEventIndex];
       const choice = option === 'option1' ? event.options[0] : event.options[1];
 
-      // Apply changes
+      // Update the resources
       resources += choice.resourceChange || 0;
       loyalty += choice.loyaltyChange || 0;
       military += choice.militaryChange || 0;
+      happiness += choice.happinessChange || 0;
+      technology += choice.technologyChange || 0;
 
-      // Move to the next event or end the game
+      // Increment the year and move to the next event
+      year++;
       currentEventIndex++;
+
       if (currentEventIndex < events.length) {
-        displayEvent();
+        startLoadingAnimation();
       } else {
         endGame();
       }
@@ -178,15 +157,19 @@
       updateDashboard();
     }
 
-    // End game
+    // Show the next event after loading animation
+    function showNextEvent() {
+      displayEvent();
+    }
+
+    // End the game
     function endGame() {
       document.getElementById("event-description").innerText = "The game is over. Thank you for playing!";
       document.getElementById("option1").style.display = "none";
       document.getElementById("option2").style.display = "none";
     }
 
-    // Initialize game
-    initializeCitizens();
+    // Initialize the game
     updateDashboard();
     displayEvent();
   </script>
